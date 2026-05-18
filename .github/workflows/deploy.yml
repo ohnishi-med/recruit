@@ -1,3 +1,4 @@
+          dangerous-clean-slate: true
 name: Build and Deploy
 
 on:
