@@ -48,10 +48,12 @@
 ---
 
 ## [2026-05-19 13:20] Step 1-4: FTP設定修正後のデプロイ再試行と動作検証
-**ステータス**: ⏳ RUNNING
+**ステータス**: ⚠️ FAILED (Login Incorrect)
 
 **作業内容**:
 - ユーザーによるFTPアカウントの設定修正に伴い、デプロイおよび公開検証をリトライ。
 - `devlog.md` への記録追記をトリガーとして、GitHub Actionsによる自動デプロイを開始。
+- **デプロイ結果**: GitHub Actionsにて `FTPError: 530 Login incorrect` が発生。FTPの接続ディレクトリ設定の変更に伴い、FTPのユーザー名/パスワード等の認証情報が変更され、GitHub Secrets（`FTP_USERNAME` / `FTP_PASSWORD`）と不一致になっている可能性が高い。
+- **次のアクション**: ユーザーにGitHub Secretsの更新を依頼し、更新後に再デプロイを試みる。
 
 ---
