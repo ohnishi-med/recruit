@@ -157,7 +157,8 @@ function initScrollAnimations() {
     ...document.querySelectorAll('.number-card'),
     ...document.querySelectorAll('.timeline-item'),
     ...document.querySelectorAll('.philosophy-grid'),
-    ...document.querySelectorAll('.jobs-list')
+    ...document.querySelectorAll('.jobs-list'),
+    ...document.querySelectorAll('.facility-card')
   ];
 
   animTargets.forEach(target => observer.observe(target));
