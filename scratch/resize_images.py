@@ -1,0 +1,30 @@
+import os
+from PIL import Image
+
+scratch_dir = r"C:\Users\coino\AntigravityWorkspace\projects\clinic\recruit-site\scratch"
+dest_dir = r"C:\Users\coino\AntigravityWorkspace\projects\clinic\recruit-site\src\assets\images"
+
+targets = [
+    {"src": "PK_220.jpg", "dest": "procedure_room.jpg"},
+    {"src": "PK_232.jpg", "dest": "operation_room.jpg"}
+]
+
+target_width = 800
+
+for t in targets:
+    src_path = os.path.join(scratch_dir, t["src"])
+    dest_path = os.path.join(dest_dir, t["dest"])
+    
+    if os.path.exists(src_path):
+        with Image.open(src_path) as img:
+            # アスペクト比を維持して縮小
+            w_percent = (target_width / float(img.size[0]))
+            h_size = int((float(img.size[1]) * float(w_percent)))
+            
+            resized_img = img.resize((target_width, h_size), Image.Resampling.LANCZOS)
+            
+            # 保存 (JPEG, quality=85)
+            resized_img.save(dest_path, "JPEG", quality=85)
+            print(f"Resized {t['src']} -> {t['dest']} ({target_width}x{h_size})")
+    else:
+        print(f"Source file {src_path} does not exist!")

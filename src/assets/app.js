@@ -2,15 +2,14 @@
  * Mainichi Clinic Recruit Site - Frontend Logic
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Config: Google Form Base URL
-  // 後で本番のGoogleフォームのURLに差し替え可能
-  const GOOGLE_FORM_BASE_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSdeX5sSjBWhx5WkI4g-T_Psk4ZtG3yR8Fh0Uqy2M3W9S-nTLw/viewform';
-  
-  // Googleフォーム内の「希望職種」入力欄のエントリーID
-  // 例: ?entry.2005620554=看護師
-  const JOB_FIELD_ENTRY_ID = 'entry.2005620554'; 
+// Config: Google Form Base URL (後で本番のGoogleフォームのURLに差し替えます)
+const GOOGLE_FORM_BASE_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd24mI40l5uV4OYr8yG7biOLVY7-T5l0uBcouBNE7BNYysRNQ/viewform';
 
+// Googleフォーム内の「希望職種」入力欄のエントリーID
+// 例: entry.26776348 (URLパラメータでは ?entry.26776348=職種名 となります)
+const JOB_FIELD_ENTRY_ID = 'entry.531493880';
+
+document.addEventListener('DOMContentLoaded', () => {
   // Initialize Elements & Functions
   initJobsFetcher();
   initScrollAnimations();
@@ -24,7 +23,8 @@ async function initJobsFetcher() {
   if (!container) return;
 
   try {
-    const response = await fetch('data/jobs.json');
+    // キャッシュを回避するためにタイムスタンプを追加
+    const response = await fetch(`data/jobs.json?v=${new Date().getTime()}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch jobs data: ${response.status}`);
     }
@@ -48,21 +48,27 @@ function renderJobs(jobs, container) {
 
   jobs.forEach(job => {
     const card = document.createElement('div');
-    card.className = 'job-card';
+    const isFeatured = job.featured === true;
+    card.className = isFeatured ? 'job-card featured active' : 'job-card';
     card.id = `job-${job.id}`;
 
     // 応募フォームへのリンクURLを構築 (職種パラメータを付加)
-    const applyUrl = `https://docs.google.com/forms/d/e/1FAIpQLSdeX5sSjBWhx5WkI4g-T_Psk4ZtG3yR8Fh0Uqy2M3W9S-nTLw/viewform?entry.2005620554=${encodeURIComponent(job.title)}`;
+    const prefillVal = job.form_title || job.title;
+    const applyUrl = `${GOOGLE_FORM_BASE_URL}?${JOB_FIELD_ENTRY_ID}=${encodeURIComponent(prefillVal)}`;
+
+    // バッジのHTML
+    const badgeHtml = job.badge ? `<span class="job-badge">${job.badge}</span>` : '';
 
     card.innerHTML = `
-      <div class="job-card-header" role="button" aria-expanded="false">
+      <div class="job-card-header" role="button" aria-expanded="${isFeatured ? 'true' : 'false'}">
         <div class="job-title-group">
           <h3 class="job-title">${job.title}</h3>
           <span class="job-tag">${job.type}</span>
+          ${badgeHtml}
         </div>
         <div class="job-arrow">▼</div>
       </div>
-      <div class="job-card-body">
+      <div class="job-card-body" ${isFeatured ? 'style="max-height: none;"' : ''}>
         <div class="job-card-content">
           <div class="job-info-grid">
             <div class="job-info-label">仕事内容</div>
@@ -95,6 +101,16 @@ function renderJobs(jobs, container) {
 
     container.appendChild(card);
   });
+
+  // DOMが追加された後、アクティブなカードの高さを scrollHeight に設定する (初期展開アニメーションのため)
+  setTimeout(() => {
+    container.querySelectorAll('.job-card.active').forEach(activeCard => {
+      const body = activeCard.querySelector('.job-card-body');
+      if (body) {
+        body.style.maxHeight = body.scrollHeight + 'px';
+      }
+    });
+  }, 100);
 
   // アコーディオン開閉のイベントリスナーを設定
   setupAccordion();
@@ -154,11 +170,12 @@ function initScrollAnimations() {
 
   // 監視対象要素を追加
   const animTargets = [
-    ...document.querySelectorAll('.number-card'),
     ...document.querySelectorAll('.timeline-item'),
     ...document.querySelectorAll('.philosophy-grid'),
     ...document.querySelectorAll('.jobs-list'),
-    ...document.querySelectorAll('.facility-card')
+    ...document.querySelectorAll('.facility-card'),
+    ...document.querySelectorAll('.message-card'),
+    ...document.querySelectorAll('.schedule-item')
   ];
 
   animTargets.forEach(target => observer.observe(target));

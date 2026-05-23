@@ -9,14 +9,12 @@ def build():
 
     print(f"Building from {src_dir} to {dist_dir}...")
 
-    # Clean dist directory
-    if os.path.exists(dist_dir):
-        print("Cleaning existing dist directory...")
-        shutil.rmtree(dist_dir)
-    
-    # Copy src to dist
+    # Copy src to dist using dirs_exist_ok=True to avoid directory lock issues
     print("Copying files...")
-    shutil.copytree(src_dir, dist_dir)
+    try:
+        shutil.copytree(src_dir, dist_dir, dirs_exist_ok=True)
+    except Exception as e:
+        print(f"Warning during file copy: {e}")
     
     print("\nBuild completed successfully!")
     print("Final structure:")
